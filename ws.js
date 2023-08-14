@@ -1,13 +1,17 @@
 
 
 // List of target lengths, negative for server, positive for client
-lens = [600, -300, 80, -40];
+// Requirements:
+//  first length must be at least 585 (+extra to encode server lengths)
+//  second length must be negative and at least -270 (currently ignored; TODO: adjust server's HTTP response)
+//  TODO(bug): 300 length below is showing up as 305 on wire, all others correct. Why?
+var lens = [600, -300, 100, -200, 300, -400, -500, 600];
 
 // Setup button
 window.onload = () => {
 btn = document.createElement('button');
 btn.innerText = 'Click to run test';
-btn.addEventListener('click', () => { test_ws(); });
+btn.addEventListener('click', () => { test_ws(lens); });
 document.body.appendChild(btn);
 }
 
@@ -27,7 +31,7 @@ function test_ws(lens) {
     server_lens = Array()
     var i = 0;
     while (lens[i] < 0) {
-        server_lens.push(lens[i++]);
+        server_lens.push(-lens[i++]);
     }
     x = server_lens.join('x')
 
@@ -45,11 +49,11 @@ function test_ws(lens) {
         var i=0;
         server_lens = Array()
         while (lens[i] < 0) {
-            server_lens.push(lens[i++]);
+            server_lens.push(-lens[i++]);
         }
         x = server_lens.join('x');
 
-        pad_len = n - (23 + server_lens.length);
+        pad_len = n - (25 + server_lens.length);
         if (pad_len < 0) {
             console.log("Error: trying to send " + (23+server_lens.length) + ", only have room for " + n);
         } else {
@@ -68,6 +72,9 @@ function test_ws(lens) {
     };
 
     sock.onopen = (event) => {
+        // Eat the first server response (regardless of length)
+        lens.shift();
+
         while (lens[0] > 0) {
             send(lens.shift());
         }
