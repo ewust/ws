@@ -13,7 +13,7 @@ ws-dev.refraction.network {
 		output file /var/log/caddy/access.log
 	}
 
-	root * /root/ws
+	root * /usr/share/ws
 	file_server
 
 	reverse_proxy /ws/* localhost:3000
